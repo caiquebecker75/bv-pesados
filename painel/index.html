@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Painel do QR code · BV Pesados</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#F3F4EE">
+<link rel="icon" href="../assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Lexend:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #0E1110; --ink2: #54594E; --lime: #C0EE4E; --papel: #F3F4EE; --linha: #E2E3DC; --zap: #1FAE5B; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--papel); color: var(--ink); font-family: 'Lexend', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .capa { max-width: 1040px; margin: 0 auto; padding: 26px 20px 60px; }
+  .topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 30px; }
+  .marca { font-family: 'Anton', sans-serif; font-size: 19px; }
+  .marca em { font-style: normal; color: #A6D934; }
+  .tag { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink2); border: 1px solid var(--linha); border-radius: 30px; padding: 7px 14px; }
+  .eyebrow { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink2); margin-bottom: 10px; }
+  h1 { font-weight: 200; font-size: clamp(30px, 7vw, 52px); line-height: 1; letter-spacing: -.02em; text-transform: uppercase; overflow-wrap: break-word; }
+  h1 b { font-weight: 600; }
+  .campanha { margin-top: 14px; font-size: 15px; color: var(--ink2); line-height: 1.5; }
+  .cartoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-top: 30px; }
+  .c { background: #fff; border-radius: 20px; padding: 22px; }
+  .c.escuro { background: var(--ink); color: #fff; }
+  .c small { display: block; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink2); }
+  .c.escuro small { color: rgba(255,255,255,.62); }
+  .c b { display: block; font-family: 'Anton', sans-serif; font-size: 46px; line-height: 1.05; margin-top: 8px; letter-spacing: -.01em; }
+  .c.escuro b { color: var(--lime); }
+  .c span { display: block; font-size: 13px; color: var(--ink2); margin-top: 6px; line-height: 1.45; }
+  .c.escuro span { color: rgba(255,255,255,.62); }
+  .bloco { margin-top: 34px; background: #fff; border-radius: 20px; padding: 24px; }
+  .bloco h2 { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink2); font-weight: 500; margin-bottom: 18px; }
+  .dias { display: flex; align-items: flex-end; gap: 6px; height: 140px; }
+  .dia { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 3px; min-width: 0; }
+  .dia i { display: block; background: var(--lime); border-radius: 4px 4px 0 0; min-height: 2px; }
+  .dia i.w { background: var(--zap); }
+  .dia u { display: block; text-align: center; font-size: 10px; color: var(--ink2); text-decoration: none; margin-top: 6px; white-space: nowrap; }
+  .legenda { display: flex; gap: 18px; margin-top: 14px; font-size: 12px; color: var(--ink2); }
+  .legenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--lime); margin-right: 6px; }
+  .legenda i.w { background: var(--zap); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink2); font-weight: 500; padding-bottom: 10px; }
+  td { padding: 11px 0; border-top: 1px solid var(--linha); }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  td a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--linha); }
+  .vazio { font-size: 15px; color: var(--ink2); line-height: 1.6; }
+  .pe { margin-top: 34px; font-size: 12px; color: var(--ink2); line-height: 1.7; }
+  .pe a { color: var(--ink2); }
+  @media (max-width: 560px) { .c b { font-size: 38px; } .bloco { padding: 18px; } }
+</style>
+</head>
+<body>
+<main class="capa">
+  <div class="topo">
+    <a class="marca" href="https://75lab.com.br" target="_blank" rel="noopener">75<em>LAB</em></a>
+    <div class="tag">Leituras do QR code</div>
+  </div>
+  <div class="eyebrow" id="eyebrow">Carregando…</div>
+  <h1 id="titulo">—</h1>
+  <p class="campanha" id="campanha"></p>
+  <div id="conteudo"></div>
+  <p class="pe">Cada leitura é contada quando alguém aponta a câmera para o QR code do banner. A ida
+    para o WhatsApp é contada quando o aparelho abre o aplicativo. Nada de quem escaneou é guardado:
+    sem nome, sem telefone e sem localização. · <a href="https://75lab.com.br" target="_blank" rel="noopener">75lab.com.br</a></p>
+</main>
+
+<script type="module">
+import { firebaseConfig, FIREBASE_SDK } from '../assets/firebase-config.js?v=1';
+const [app, fs] = await Promise.all([
+  import(`${FIREBASE_SDK}/firebase-app.js`),
+  import(`${FIREBASE_SDK}/firebase-firestore-lite.js`),
+]);
+const db = fs.getFirestore(app.initializeApp(firebaseConfig));
+
+const $ = (id) => document.getElementById(id);
+const P = new URLSearchParams(location.search);
+const codigo = (P.get('v') || '').toLowerCase().trim();
+const DIAS = 14;
+
+const dados = await fetch('../vendedores.json').then((r) => r.json());
+const vendedores = dados.vendedores;
+const diaDeHoje = () => new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
+const rotulo = (d) => d.slice(8, 10) + '/' + d.slice(5, 7);
+const ultimosDias = (n) => {
+  const out = [];
+  for (let i = n - 1; i >= 0; i--) out.push(new Date(Date.now() - 3 * 3600e3 - i * 86400e3).toISOString().slice(0, 10));
+  return out;
+};
+
+function grafico(porDia) {
+  const dias = ultimosDias(DIAS);
+  const teto = Math.max(1, ...dias.map((d) => (porDia[d]?.leitura || 0)));
+  const barras = dias.map((d) => {
+    const l = porDia[d]?.leitura || 0, w = porDia[d]?.whatsapp || 0;
+    const hl = Math.round((l / teto) * 104), hw = Math.round((w / teto) * 104);
+    return `<div class="dia" title="${rotulo(d)}: ${l} leitura${l === 1 ? '' : 's'}, ${w} no WhatsApp">
+      <i class="w" style="height:${hw}px"></i><i style="height:${Math.max(0, hl - hw)}px"></i><u>${rotulo(d)}</u></div>`;
+  }).join('');
+  return `<div class="bloco"><h2>Últimos ${DIAS} dias</h2><div class="dias">${barras}</div>
+    <div class="legenda"><span><i></i>Leituras do QR</span><span><i class="w"></i>Foram para o WhatsApp</span></div></div>`;
+}
+
+async function eventos(filtro) {
+  const q = filtro
+    ? fs.query(fs.collection(db, 'qrv_eventos'), fs.where('codigo', '==', filtro), fs.limit(20000))
+    : fs.query(fs.collection(db, 'qrv_eventos'), fs.limit(20000));
+  const snap = await fs.getDocs(q);
+  return snap.docs.map((d) => d.data());
+}
+
+// só entram os códigos que estão em vendedores.json: testes e chutes na API ficam de fora
+function soma(lista) {
+  const validos = new Set(vendedores.map((v) => v.codigo));
+  const r = { leitura: 0, whatsapp: 0, porDia: {}, porCodigo: {} };
+  for (const e of lista) {
+    if (!validos.has(e.codigo)) continue;
+    const t = e.tipo === 'whatsapp' ? 'whatsapp' : 'leitura';
+    r[t]++;
+    (r.porDia[e.dia] ??= { leitura: 0, whatsapp: 0 })[t]++;
+    (r.porCodigo[e.codigo] ??= { leitura: 0, whatsapp: 0 })[t]++;
+  }
+  return r;
+}
+
+try {
+  if (codigo) {
+    const v = vendedores.find((x) => x.codigo === codigo);
+    if (!v) throw new Error('vendedor não encontrado');
+    $('eyebrow').textContent = 'Painel do vendedor';
+    $('titulo').innerHTML = `<b>${v.nome}</b>`;
+    $('campanha').textContent = `${dados.campanha} · código ${v.codigo}`;
+    const s = soma(await eventos(codigo));
+    const taxa = s.leitura ? Math.round((s.whatsapp / s.leitura) * 100) : 0;
+    $('conteudo').innerHTML = `
+      <div class="cartoes">
+        <div class="c escuro"><small>Leituras do QR</small><b>${s.leitura}</b><span>vezes que alguém apontou a câmera para o seu código</span></div>
+        <div class="c"><small>Foram para o WhatsApp</small><b>${s.whatsapp}</b><span>abriram a conversa com você</span></div>
+        <div class="c"><small>Dos que leram</small><b>${taxa}%</b><span>seguiram para a conversa</span></div>
+        <div class="c"><small>Hoje</small><b>${s.porDia[diaDeHoje()]?.leitura || 0}</b><span>leituras desde a meia-noite</span></div>
+      </div>
+      ${grafico(s.porDia)}`;
+  } else {
+    $('eyebrow').textContent = 'Campanha inteira';
+    $('titulo').innerHTML = 'QR code por <b>vendedor</b>';
+    $('campanha').textContent = `${dados.campanha} · ${vendedores.length} vendedores`;
+    const s = soma(await eventos(null));
+    const taxa = s.leitura ? Math.round((s.whatsapp / s.leitura) * 100) : 0;
+    const linhas = vendedores
+      .map((v) => ({ v, d: s.porCodigo[v.codigo] || { leitura: 0, whatsapp: 0 } }))
+      .sort((a, b) => b.d.leitura - a.d.leitura || a.v.nome.localeCompare(b.v.nome))
+      .map(({ v, d }) => `<tr><td><a href="?v=${v.codigo}">${v.nome}</a></td>
+        <td class="n">${d.leitura}</td><td class="n">${d.whatsapp}</td></tr>`).join('');
+    $('conteudo').innerHTML = `
+      <div class="cartoes">
+        <div class="c escuro"><small>Leituras do QR</small><b>${s.leitura}</b><span>na campanha inteira</span></div>
+        <div class="c"><small>Foram para o WhatsApp</small><b>${s.whatsapp}</b><span>conversas abertas</span></div>
+        <div class="c"><small>Dos que leram</small><b>${taxa}%</b><span>seguiram para a conversa</span></div>
+        <div class="c"><small>Vendedores com leitura</small><b>${Object.keys(s.porCodigo).length}</b><span>de ${vendedores.length} no banner</span></div>
+      </div>
+      ${grafico(s.porDia)}
+      <div class="bloco"><h2>Por vendedor</h2>
+        <table><thead><tr><th>Vendedor</th><th class="n">Leituras</th><th class="n">WhatsApp</th></tr></thead>
+        <tbody>${linhas}</tbody></table></div>`;
+  }
+} catch (e) {
+  $('eyebrow').textContent = 'Painel';
+  $('titulo').innerHTML = 'Não deu para <b>carregar</b>';
+  $('conteudo').innerHTML = `<p class="vazio">Confira o link do painel. Cada vendedor tem o seu, no formato
+    <b>/painel/?v=v01</b>. Sem o código, a página mostra a campanha inteira.</p>`;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "campanha": "Empréstimo com Garantia de Veículo · Pesados · BV",
+  "cliente": "NEOBAND",
+  "mensagem": "Olá, {primeiro}! Vi o banner do Empréstimo com Garantia de Veículo do BV e quero saber mais.",
+  "vendedores": [
+    { "codigo": "v01", "nome": "Bruno Cezar Samico Bacalha", "fone": "41999723527" },
+    { "codigo": "v02", "nome": "Cleiton Oliveira", "fone": "46999112655" },
+    { "codigo": "v03", "nome": "Mauro Cesar Peres de Andrade", "fone": "45988212766" },
+    { "codigo": "v04", "nome": "Cristiano Eustaquio Barbosa", "fone": "31991999183" },
+    { "codigo": "v05", "nome": "Fernando da Silva Braz", "fone": "15998409478" },
+    { "codigo": "v06", "nome": "Geraldo Jose Fraga Morosino", "fone": "51996951479" },
+    { "codigo": "v07", "nome": "Hanzer Alexandre Gomes Ribeiro", "fone": "87992436836" },
+    { "codigo": "v08", "nome": "Jean Carlos Cintra Rocha", "fone": "65996033585" },
+    { "codigo": "v09", "nome": "Lazaro Aparecido Silverio", "fone": "11960577286" },
+    { "codigo": "v10", "nome": "Leo Sandro Baralhas", "fone": "11961886704" },
+    { "codigo": "v11", "nome": "Marcos Natal Evangelista da Rocha", "fone": "62999942710" },
+    { "codigo": "v12", "nome": "Marcos Vinicius Serafini", "fone": "66992184654" },
+    { "codigo": "v13", "nome": "Clarice Jacovski", "fone": "48999719279" },
+    { "codigo": "v14", "nome": "Marina Pereira Noronha", "fone": "48996163546" },
+    { "codigo": "v15", "nome": "Osmar Gabriel Pereira dos Santos", "fone": "42999787384" },
+    { "codigo": "v16", "nome": "Renata Cavalcante", "fone": "41996198463" },
+    { "codigo": "v17", "nome": "Renato Costa Neves", "fone": "19999441540" },
+    { "codigo": "v18", "nome": "Rodrigo Costa Braulio", "fone": "14991854113" },
+    { "codigo": "v19", "nome": "Soraia Steinmetz", "fone": "54999414293" },
+    { "codigo": "v20", "nome": "Tiago Humberto Ribeiro de Queiros", "fone": "34991950341" },
+    { "codigo": "v21", "nome": "Vagner Cassiano de Sousa", "fone": "11995984300" },
+    { "codigo": "v22", "nome": "Vanderley Jose Solda", "fone": "19999442440" },
+    { "codigo": "v23", "nome": "Wallace Bruno Rocha", "fone": "31992431426" }
+  ]
+}

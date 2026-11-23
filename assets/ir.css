@@ -1,0 +1,24 @@
+/* Tela de passagem: aparece por um instante antes do WhatsApp abrir. */
+:root { --ink: #0E1110; --lime: #C0EE4E; --zap: #25D366; --cinza: #8A8F8A; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: var(--ink); color: #fff;
+  font-family: 'Lexend', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  display: grid; place-items: center; padding: 28px;
+}
+.ir { max-width: 420px; width: 100%; text-align: center; }
+.selo { font-family: 'Anton', system-ui, sans-serif; font-size: 20px; letter-spacing: .02em; margin-bottom: 38px; }
+.selo em { font-style: normal; color: var(--lime); }
+.zap { width: 72px; height: 72px; margin: 0 auto 22px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(37, 211, 102, .14); color: var(--zap); animation: pulsa 1.4s ease-in-out infinite; }
+.zap svg { width: 38px; height: 38px; }
+@keyframes pulsa { 50% { transform: scale(1.07); background: rgba(37, 211, 102, .22); } }
+h1 { font-weight: 300; font-size: 20px; line-height: 1.35; letter-spacing: -.01em; }
+h1 b { font-weight: 500; font-size: 23px; }
+.sub { margin-top: 12px; font-size: 14px; color: var(--cinza); line-height: 1.5; }
+.btn { display: inline-block; margin-top: 30px; padding: 15px 26px; border-radius: 40px;
+  background: var(--lime); color: var(--ink); text-decoration: none; font-weight: 500; font-size: 15px; }
+.fone { margin-top: 16px; font-size: 14px; color: var(--cinza); }
+@media (prefers-reduced-motion: reduce) { .zap { animation: none; } }

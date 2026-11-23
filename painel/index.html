@@ -60,6 +60,10 @@
   .cadastro { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--linha); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--ink2); }
   .cadastro input { font: inherit; font-size: 14px; padding: 10px 14px; border: 1px solid var(--linha); border-radius: 30px; min-width: 260px; }
   .erro { font-size: 13px; color: #B3261E; margin-top: 10px; }
+  #mapa { height: 340px; border-radius: 16px; margin: 4px 0 20px; z-index: 0; }
+  .leaflet-container { font-family: 'Lexend', system-ui, sans-serif; border-radius: 16px; }
+  .ondeveio { background: none; border: 0; padding: 0; color: var(--ink); border-bottom: 1px solid var(--linha); font-size: 14px; }
+  .semlocal { color: var(--ink2); }
   @media (max-width: 560px) { .c b { font-size: 38px; } .bloco { padding: 18px; } .cadastro input { min-width: 0; width: 100%; } }
 </style>
 </head>
@@ -76,8 +80,9 @@
   <div id="contatos"></div>
   <p class="pe">A leitura é contada quando alguém aponta a câmera para o QR code do banner. Depois
     vem a tela de contato e a ida para o WhatsApp. Os números acima ficam à vista de quem tem o link.
-    O nome e o WhatsApp de quem preencheu são dado de pessoa, então só aparecem depois de entrar:
-    para o vendedor dono do código e para a equipe 75 LAB. ·
+    O nome, o WhatsApp e o mapa de quem preencheu são dado de pessoa, então só aparecem depois de
+    entrar: para o vendedor dono do código e para a equipe 75 LAB. O ponto no mapa é de quem permitiu
+    a localização no aviso do celular; quem recusa aparece na lista do mesmo jeito. ·
     <a href="https://75lab.com.br" target="_blank" rel="noopener">75lab.com.br</a></p>
 </main>
 
@@ -173,6 +178,14 @@ $('contatos').addEventListener('click', (e) => {
   if (b.dataset.acao === 'entrar' || b.dataset.acao === 'trocar') entrar();
   if (b.dataset.acao === 'salvar') salvarDono(b);
 });
+
+$('contatos').addEventListener('click', (e) => {
+  const p = e.target.closest('[data-ponto]');
+  if (!p || !mapaAtual) return;
+  const [lat, lng] = p.dataset.ponto.split(',').map(Number);
+  mapaAtual.setView([lat, lng], 16);
+  document.getElementById('mapa').scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
 $('sair').addEventListener('click', () => A.signOut(auth));
 
 async function salvarDono(b) {
@@ -192,17 +205,64 @@ async function salvarDono(b) {
   }
 }
 
-async function tabela(filtro) {
+async function buscar(filtro) {
   const q = filtro
     ? fs.query(fs.collection(db, 'qrv_leads'), fs.where('codigo', '==', filtro), fs.limit(3000))
     : fs.query(fs.collection(db, 'qrv_leads'), fs.limit(3000));
   const snap = await fs.getDocs(q);
-  const lista = snap.docs.map((d) => d.data())
+  return snap.docs.map((d) => d.data())
     .sort((a, b) => String(b.criadoEm).localeCompare(String(a.criadoEm)));
+}
+
+const temLocal = (l) => l.geo && typeof l.geo.lat === 'number' && typeof l.geo.lng === 'number';
+
+function tabela(lista) {
   if (!lista.length) return '<p class="aviso">Ninguém deixou o contato ainda. Assim que alguém preencher a tela antes do WhatsApp, o nome aparece aqui.</p>';
+  const comMapa = lista.some(temLocal);
   const linhas = lista.map((l) => `<tr><td>${esc(momento(l.criadoEm))}</td><td>${esc(l.nome)}</td>
-    <td><a href="https://wa.me/55${esc(l.telefone)}" target="_blank" rel="noopener">${esc(telefone(l.telefone))}</a></td></tr>`).join('');
-  return `<table><thead><tr><th>Quando</th><th>Nome</th><th>WhatsApp</th></tr></thead><tbody>${linhas}</tbody></table>`;
+    <td><a href="https://wa.me/55${esc(l.telefone)}" target="_blank" rel="noopener">${esc(telefone(l.telefone))}</a></td>
+    ${comMapa ? `<td>${temLocal(l)
+      ? `<button class="ondeveio" data-ponto="${l.geo.lat},${l.geo.lng}">no mapa</button>`
+      : '<span class="semlocal">não permitiu</span>'}</td>` : ''}</tr>`).join('');
+  return `${comMapa ? '<div id="mapa"></div>' : ''}
+    <table><thead><tr><th>Quando</th><th>Nome</th><th>WhatsApp</th>${comMapa ? '<th>De onde</th>' : ''}</tr></thead>
+    <tbody>${linhas}</tbody></table>`;
+}
+
+// mapa de onde a pessoa estava ao escanear o QR, quando ela permite a localização no celular.
+// OpenStreetMap pelo Leaflet: não precisa de chave nem de conta.
+let mapaAtual = null;
+function carregarLeaflet() {
+  if (window.L) return Promise.resolve(window.L);
+  return new Promise((ok, falha) => {
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(css);
+    const js = document.createElement('script');
+    js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    js.onload = () => ok(window.L);
+    js.onerror = falha;
+    document.head.appendChild(js);
+  });
+}
+
+async function montarMapa(lista) {
+  const el = document.getElementById('mapa');
+  const pts = lista.filter(temLocal);
+  if (!el || !pts.length) return;
+  let L;
+  try { L = await carregarLeaflet(); } catch { el.remove(); return; }
+  const m = L.map(el, { scrollWheelZoom: false });
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '© OpenStreetMap',
+  }).addTo(m);
+  for (const p of pts) {
+    L.marker([p.geo.lat, p.geo.lng]).addTo(m)
+      .bindPopup(`<b>${esc(p.nome)}</b><br>${esc(telefone(p.telefone))}<br>${esc(momento(p.criadoEm))}`);
+  }
+  m.fitBounds(L.latLngBounds(pts.map((p) => [p.geo.lat, p.geo.lng])).pad(0.35), { maxZoom: 15 });
+  mapaAtual = m;
 }
 
 async function cadastroDono() {
@@ -221,9 +281,10 @@ async function contatos(user) {
   }
   const eq = equipe75(user);
   try {
-    const html = await tabela(codigo || null);
-    caixa(html + (eq && codigo ? await cadastroDono() : '')
+    const lista = await buscar(codigo || null);
+    caixa(tabela(lista) + (eq && codigo ? await cadastroDono() : '')
       + (eq && !codigo ? '<p class="aviso" style="margin-top:14px">Para filtrar por vendedor e baixar em Excel, use a <a href="../leads/">lista de contatos</a>.</p>' : ''));
+    montarMapa(lista);
   } catch (err) {
     if (err.code === 'permission-denied') {
       caixa(`<p class="aviso">A conta <b>${esc(user.email || '')}</b> não está ligada a este QR code.

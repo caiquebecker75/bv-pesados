@@ -34,7 +34,8 @@
         Falar no WhatsApp
       </button>
       <p class="aviso">Ao continuar, você autoriza <b>Cleiton</b> e o <b>BV</b> a entrarem em
-        contato sobre o Empréstimo com Garantia de Veículo. Seus dados não são usados para mais nada.</p>
+        contato sobre o Empréstimo com Garantia de Veículo, e a saber de que região você falou, se
+        você permitir a localização no aviso do celular. Seus dados não são usados para mais nada.</p>
     </form>
   </section>
 
@@ -79,6 +80,27 @@
     gravar('qrv_eventos', { codigo: txt(CODIGO), tipo: txt(tipo), so: txt(so), dia: txt(dia) });
   }
 
+  // Localização: o aviso do celular aparece assim que a tela abre, logo depois da leitura do QR.
+  // Fica guardada só na memória e só vai junto se a pessoa deixar o contato. Quem recusa segue igual.
+  var GEO = null;
+  function pedirLocal() {
+    if (!navigator.geolocation) return;
+    try {
+      navigator.geolocation.getCurrentPosition(function (p) {
+        if (!p || !p.coords) return;
+        GEO = { lat: p.coords.latitude, lng: p.coords.longitude, precisao: Math.round(p.coords.accuracy || 0) };
+      }, function () {}, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+    } catch (e) {}
+  }
+
+  function campoGeo() {
+    if (!GEO || typeof GEO.lat !== 'number' || typeof GEO.lng !== 'number') return null;
+    return { mapValue: { fields: {
+      lat: { doubleValue: GEO.lat }, lng: { doubleValue: GEO.lng },
+      precisao: { doubleValue: GEO.precisao },
+    } } };
+  }
+
   function linkWhats(nome) {
     var msg = MODELO.replace('{primeiro}', NOME_VENDEDOR).replace('{nome}', nome || '');
     return 'https://wa.me/' + FONE + '?text=' + encodeURIComponent(msg);
@@ -114,16 +136,20 @@
       erro.textContent = 'Confira o WhatsApp: DDD e número.'; erro.hidden = false; campoFone.focus(); return;
     }
     erro.hidden = true;
-    gravar('qrv_leads', {
+    var campos = {
       codigo: txt(CODIGO), nome: txt(nome), telefone: txt(tel), so: txt(so), dia: txt(dia),
       consentimento: { booleanValue: true }, criadoEm: txt(new Date().toISOString()),
-    });
+    };
+    var g = campoGeo();
+    if (g) campos.geo = g;
+    gravar('qrv_leads', campos);
     evento('lead');
     try { localStorage.setItem(GUARDA, JSON.stringify({ nome: nome, quando: Date.now() })); } catch (err) {}
     irParaWhats(nome);
   });
 
   evento('leitura');
+  pedirLocal();
 
   // quem já deixou o contato nas últimas 12 h não preenche de novo
   try {

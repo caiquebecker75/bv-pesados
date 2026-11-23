@@ -50,33 +50,47 @@
   .vazio { font-size: 15px; color: var(--ink2); line-height: 1.6; }
   .pe { margin-top: 34px; font-size: 12px; color: var(--ink2); line-height: 1.7; }
   .pe a { color: var(--ink2); }
-  @media (max-width: 560px) { .c b { font-size: 38px; } .bloco { padding: 18px; } }
+  .quem { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--ink2); }
+  button { font: inherit; cursor: pointer; }
+  .ghost { background: none; border: 1px solid var(--linha); border-radius: 30px; padding: 8px 16px; font-size: 12px; color: var(--ink2); }
+  .btn { background: var(--ink); color: #fff; border: 0; border-radius: 40px; padding: 13px 22px; font-size: 14px; font-weight: 500; }
+  .aviso { font-size: 14px; color: var(--ink2); line-height: 1.6; max-width: 620px; }
+  .aviso b { color: var(--ink); font-weight: 500; }
+  .cta { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .cadastro { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--linha); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--ink2); }
+  .cadastro input { font: inherit; font-size: 14px; padding: 10px 14px; border: 1px solid var(--linha); border-radius: 30px; min-width: 260px; }
+  .erro { font-size: 13px; color: #B3261E; margin-top: 10px; }
+  @media (max-width: 560px) { .c b { font-size: 38px; } .bloco { padding: 18px; } .cadastro input { min-width: 0; width: 100%; } }
 </style>
 </head>
 <body>
 <main class="capa">
   <div class="topo">
     <a class="marca" href="https://75lab.com.br" target="_blank" rel="noopener"><img src="../assets/img/logo-75lab-preto.png" alt="75 LAB" width="104" height="30"></a>
-    <div class="tag">Leituras do QR code</div>
+    <div class="quem"><span id="email"></span><button class="ghost" id="sair" hidden>Sair</button><span class="tag" id="tag">Leituras do QR code</span></div>
   </div>
   <div class="eyebrow" id="eyebrow">Carregando…</div>
   <h1 id="titulo">—</h1>
   <p class="campanha" id="campanha"></p>
   <div id="conteudo"></div>
+  <div id="contatos"></div>
   <p class="pe">A leitura é contada quando alguém aponta a câmera para o QR code do banner. Depois
-    vem a tela de contato e a ida para o WhatsApp. O nome e o WhatsApp de quem preencheu ficam em
-    lugar fechado, que só a equipe 75 LAB abre: aqui aparece só a contagem, e o contato em si chega
-    na sua conversa do WhatsApp, já com o nome na primeira mensagem. ·
+    vem a tela de contato e a ida para o WhatsApp. Os números acima ficam à vista de quem tem o link.
+    O nome e o WhatsApp de quem preencheu são dado de pessoa, então só aparecem depois de entrar:
+    para o vendedor dono do código e para a equipe 75 LAB. ·
     <a href="https://75lab.com.br" target="_blank" rel="noopener">75lab.com.br</a></p>
 </main>
 
 <script type="module">
 import { firebaseConfig, FIREBASE_SDK } from '../assets/firebase-config.js?v=1';
-const [app, fs] = await Promise.all([
+const [app, fs, A] = await Promise.all([
   import(`${FIREBASE_SDK}/firebase-app.js`),
   import(`${FIREBASE_SDK}/firebase-firestore-lite.js`),
+  import(`${FIREBASE_SDK}/firebase-auth.js`),
 ]);
-const db = fs.getFirestore(app.initializeApp(firebaseConfig));
+const aplicativo = app.initializeApp(firebaseConfig);
+const db = fs.getFirestore(aplicativo);
+const auth = A.getAuth(aplicativo);
 
 const $ = (id) => document.getElementById(id);
 const P = new URLSearchParams(location.search);
@@ -128,10 +142,113 @@ function soma(lista) {
   return r;
 }
 
+/* ---- Contatos de quem preencheu a tela antes do WhatsApp ----------------------------------
+   Dado de pessoa não entra em link aberto. A lista só carrega depois do login: para a equipe
+   75 LAB (qualquer código) e para o vendedor dono do código, cujo e-mail a equipe cadastra
+   aqui mesmo. Quem manda é a regra do Firestore, não esta página. */
+const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const telefone = (d) => (d?.length === 11 ? `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
+  : d?.length === 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}` : d || '');
+const momento = (iso) => { try { return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); } catch { return iso; } };
+const equipe75 = (u) => !!u?.email && u.email.toLowerCase().endsWith('@75lab.com.br');
+
+function caixa(html) {
+  $('contatos').innerHTML = `<div class="bloco"><h2>Contatos que chegaram</h2>${html}</div>`;
+}
+
+function entrar() {
+  const p = new A.GoogleAuthProvider();
+  p.setCustomParameters({ prompt: 'select_account' });
+  A.signInWithPopup(auth, p).catch((e) => {
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') return A.signInWithRedirect(auth, p);
+    if (!['auth/popup-closed-by-user', 'auth/cancelled-popup-request'].includes(e.code)) {
+      $('contatos').insertAdjacentHTML('beforeend', `<p class="erro">Não deu para entrar (${esc(e.code || e.message)}).</p>`);
+    }
+  });
+}
+
+$('contatos').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-acao]');
+  if (!b) return;
+  if (b.dataset.acao === 'entrar' || b.dataset.acao === 'trocar') entrar();
+  if (b.dataset.acao === 'salvar') salvarDono(b);
+});
+$('sair').addEventListener('click', () => A.signOut(auth));
+
+async function salvarDono(b) {
+  const campo = document.getElementById('dono');
+  const valor = (campo.value || '').trim().toLowerCase();
+  b.disabled = true;
+  try {
+    await fs.setDoc(fs.doc(db, 'qrv_vendedores', codigo), {
+      email: valor, nome: (vendedorAtual?.nome || ''), atualizadoEm: new Date().toISOString(),
+    });
+    campo.blur();
+    b.textContent = 'Salvo';
+    setTimeout(() => { b.textContent = 'Salvar'; b.disabled = false; }, 1800);
+  } catch (err) {
+    b.disabled = false;
+    $('contatos').insertAdjacentHTML('beforeend', `<p class="erro">Não deu para salvar (${esc(err.code || err.message)}).</p>`);
+  }
+}
+
+async function tabela(filtro) {
+  const q = filtro
+    ? fs.query(fs.collection(db, 'qrv_leads'), fs.where('codigo', '==', filtro), fs.limit(3000))
+    : fs.query(fs.collection(db, 'qrv_leads'), fs.limit(3000));
+  const snap = await fs.getDocs(q);
+  const lista = snap.docs.map((d) => d.data())
+    .sort((a, b) => String(b.criadoEm).localeCompare(String(a.criadoEm)));
+  if (!lista.length) return '<p class="aviso">Ninguém deixou o contato ainda. Assim que alguém preencher a tela antes do WhatsApp, o nome aparece aqui.</p>';
+  const linhas = lista.map((l) => `<tr><td>${esc(momento(l.criadoEm))}</td><td>${esc(l.nome)}</td>
+    <td><a href="https://wa.me/55${esc(l.telefone)}" target="_blank" rel="noopener">${esc(telefone(l.telefone))}</a></td></tr>`).join('');
+  return `<table><thead><tr><th>Quando</th><th>Nome</th><th>WhatsApp</th></tr></thead><tbody>${linhas}</tbody></table>`;
+}
+
+async function cadastroDono() {
+  let atual = '';
+  try { atual = (await fs.getDoc(fs.doc(db, 'qrv_vendedores', codigo))).data()?.email || ''; } catch {}
+  return `<div class="cadastro"><span>E-mail que abre este painel:</span>
+    <input id="dono" type="email" inputmode="email" autocomplete="off" placeholder="conta Google do vendedor" value="${esc(atual)}">
+    <button class="ghost" data-acao="salvar">Salvar</button></div>`;
+}
+
+async function contatos(user) {
+  if (!user) {
+    return caixa(`<p class="aviso">O nome e o WhatsApp de quem preencheu a tela não ficam à mostra em link
+      aberto. Entre com a sua conta para ver a lista${codigo ? ' deste código' : ''}.</p>
+      <div class="cta"><button class="btn" data-acao="entrar">Entrar</button></div>`);
+  }
+  const eq = equipe75(user);
+  try {
+    const html = await tabela(codigo || null);
+    caixa(html + (eq && codigo ? await cadastroDono() : '')
+      + (eq && !codigo ? '<p class="aviso" style="margin-top:14px">Para filtrar por vendedor e baixar em Excel, use a <a href="../leads/">lista de contatos</a>.</p>' : ''));
+  } catch (err) {
+    if (err.code === 'permission-denied') {
+      caixa(`<p class="aviso">A conta <b>${esc(user.email || '')}</b> não está ligada a este QR code.
+        Peça para a 75 LAB cadastrar este e-mail no código <b>${esc(codigo || '—')}</b>, ou entre com a conta certa.</p>
+        <div class="cta"><button class="ghost" data-acao="trocar">Entrar com outra conta</button></div>`);
+    } else {
+      caixa(`<p class="erro">Não deu para carregar os contatos (${esc(err.code || err.message)}).</p>`);
+    }
+  }
+}
+
+A.onAuthStateChanged(auth, (user) => {
+  $('email').textContent = user?.email || '';
+  $('sair').hidden = !user;
+  $('tag').hidden = !!user;
+  contatos(user);
+});
+
+let vendedorAtual = null;
+
 try {
   if (codigo) {
     const v = vendedores.find((x) => x.codigo === codigo);
     if (!v) throw new Error('vendedor não encontrado');
+    vendedorAtual = v;
     $('eyebrow').textContent = 'Painel do vendedor';
     $('titulo').innerHTML = `<b>${v.nome}</b>`;
     $('campanha').textContent = `${dados.campanha} · código ${v.codigo}`;

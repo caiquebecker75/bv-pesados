@@ -37,27 +37,23 @@ nem sobre foto: é o que faz a câmera reconhecer de longe.
 4. A saída para o WhatsApp também é carimbada (**whatsapp**), e fica o botão "Se não abrir, toque aqui".
 5. Quem já preencheu nas últimas 12 h não preenche de novo: vai direto para a conversa.
 
-## Painel: o que é aberto e o que pede login
+## Painel: o link é a chave
 
-O link do painel (`painel/?v=v07`) abre para qualquer um que tenha o endereço e mostra **só número**:
-leituras, quantos deixaram o contato, quantos foram para o WhatsApp, a proporção e os últimos 14 dias.
-Sem `?v=`, mostra a campanha inteira com o ranking dos 23.
+`painel/?v=v07` abre sem login e mostra tudo daquele vendedor: leituras, quantos deixaram o contato,
+quantos foram para o WhatsApp, a proporção, os últimos 14 dias, a **lista de contatos** (nome,
+WhatsApp e horário) e o **mapa** de onde a pessoa estava quando escaneou, de quem permitiu a
+localização. Sem `?v=`, mostra a campanha inteira com o ranking dos 23.
 
-**Depois de entrar**, no mesmo painel aparece o bloco **Contatos que chegaram**: nome, WhatsApp, quando,
-e o **mapa** de onde a pessoa estava quando escaneou (só de quem permitiu a localização). Veem isso:
+Foi decisão do cliente, em 23/11/2026: cada vendedor acompanha os próprios contatos pelo link que
+recebe, sem conta e sem senha. **O link é a chave**, então ele fica com o vendedor, com a NEOBAND e
+com a 75 LAB; quem tiver o endereço vê os dados daquele código. Cada página avisa isso no rodapé.
 
-- a **equipe 75 LAB** (login Google @75lab.com.br), em qualquer código;
-- o **vendedor dono do código**, e só o dele.
+A visão completa, com filtro por vendedor e exportação para Excel, continua em **`leads/`**, essa sim
+com login Google **@75lab.com.br**. É de lá que sai a base para a NEOBAND e o BV.
 
-Para ligar um vendedor ao código dele, a equipe entra no painel daquele vendedor e preenche
-**"E-mail que abre este painel"** com a conta Google dele. Isso grava `qrv_vendedores/<codigo>`, que
-só a regra do Firestore lê. Sem esse cadastro, o vendedor vê os números e não vê a lista.
-
-A lista completa, com filtro por vendedor e exportação para Excel, continua em **`leads/`**
-(login Google @75lab.com.br). É de lá que sai a base para a NEOBAND e o BV.
-
-Nome, telefone e mapa **não entram em link aberto**: quem manda é a regra do Firestore, não a página.
-O vendedor também recebe o contato na própria conversa do WhatsApp, com o nome na primeira mensagem.
+Para voltar a fechar o painel, é trocar `allow get, list: if true` por `equipe75()` em `qrv_leads`
+(repositório [`caiquebecker75/produtos`](https://github.com/caiquebecker75/produtos)) e devolver o
+cadastro de dono por e-mail, que está no histórico do dia 23/11.
 
 ## Refazer ou mexer na lista
 
@@ -84,7 +80,4 @@ Firestore do projeto `instalacoes-75lab`:
 um cria (quem escaneia não tem login) e qualquer um com o link do painel soma; apagar é só da equipe
 75 LAB. Contamos documentos em vez de manter um contador porque `batchWrite`, que é o que faria o
 `increment`, não aceita chamada sem login.
-- `qrv_vendedores`: um documento por código, só com o e-mail de login do vendedor. Escreve a equipe;
-  ler, só a própria regra do Firestore.
-
 O mapa do painel usa OpenStreetMap pelo Leaflet: sem chave, sem conta e sem custo.

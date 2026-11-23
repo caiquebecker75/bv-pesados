@@ -1,24 +1,48 @@
-/* Tela de passagem: aparece por um instante antes do WhatsApp abrir. */
-:root { --ink: #0E1110; --lime: #C0EE4E; --zap: #25D366; --cinza: #8A8F8A; }
+/* Tela de contato e tela de passagem, no celular de quem escaneia o QR do banner. */
+:root { --ink: #0E1110; --lime: #C0EE4E; --zap: #25D366; --cinza: #8A8F8A; --linha: #2A2D29; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { height: 100%; }
+html { -webkit-text-size-adjust: 100%; }
 body {
-  background: var(--ink); color: #fff;
+  min-height: 100dvh; background: var(--ink); color: #fff;
   font-family: 'Lexend', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
-  display: grid; place-items: center; padding: 28px;
+  display: grid; place-items: center; padding: 26px 22px 34px;
 }
-.ir { max-width: 420px; width: 100%; text-align: center; }
-.selo { font-family: 'Anton', system-ui, sans-serif; font-size: 20px; letter-spacing: .02em; margin-bottom: 38px; }
-.selo em { font-style: normal; color: var(--lime); }
-.zap { width: 72px; height: 72px; margin: 0 auto 22px; border-radius: 50%; display: grid; place-items: center;
+.ir { max-width: 400px; width: 100%; }
+.marca { display: block; height: 26px; width: auto; margin: 0 auto 34px; }
+
+h1 { font-weight: 300; font-size: 22px; line-height: 1.3; letter-spacing: -.015em; text-align: center; }
+h1 b { font-weight: 600; }
+.sub { margin-top: 12px; font-size: 14px; line-height: 1.55; color: var(--cinza); text-align: center; }
+.sub b { color: #fff; font-weight: 500; }
+
+form { margin-top: 26px; }
+.campo { display: block; margin-bottom: 14px; }
+.campo span { display: block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--cinza); margin-bottom: 7px; }
+.campo input {
+  width: 100%; font: 400 17px/1.2 'Lexend', system-ui, sans-serif; color: #fff;
+  background: #171A16; border: 1px solid var(--linha); border-radius: 14px; padding: 15px 16px;
+}
+.campo input::placeholder { color: #5E635C; }
+.campo input:focus { outline: none; border-color: var(--lime); }
+.erro { font-size: 13px; color: #FF9B8A; margin: -4px 0 12px; line-height: 1.45; }
+
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+  margin-top: 6px; padding: 17px 22px; border: 0; border-radius: 40px; cursor: pointer;
+  background: var(--lime); color: var(--ink); text-decoration: none;
+  font: 600 16px/1 'Lexend', system-ui, sans-serif;
+}
+.btn svg { width: 20px; height: 20px; }
+.btn:active { transform: translateY(1px); }
+.aviso { margin-top: 16px; font-size: 11.5px; line-height: 1.55; color: #6E736C; text-align: center; }
+.aviso b { color: var(--cinza); font-weight: 500; }
+
+/* tela de passagem, depois de enviar */
+.zap { width: 68px; height: 68px; margin: 0 auto 22px; border-radius: 50%; display: grid; place-items: center;
   background: rgba(37, 211, 102, .14); color: var(--zap); animation: pulsa 1.4s ease-in-out infinite; }
-.zap svg { width: 38px; height: 38px; }
+.zap svg { width: 34px; height: 34px; }
 @keyframes pulsa { 50% { transform: scale(1.07); background: rgba(37, 211, 102, .22); } }
-h1 { font-weight: 300; font-size: 20px; line-height: 1.35; letter-spacing: -.01em; }
-h1 b { font-weight: 500; font-size: 23px; }
-.sub { margin-top: 12px; font-size: 14px; color: var(--cinza); line-height: 1.5; }
-.btn { display: inline-block; margin-top: 30px; padding: 15px 26px; border-radius: 40px;
-  background: var(--lime); color: var(--ink); text-decoration: none; font-weight: 500; font-size: 15px; }
-.fone { margin-top: 16px; font-size: 14px; color: var(--cinza); }
+#tela-indo .btn { margin-top: 28px; }
+.fone { margin-top: 14px; font-size: 13px; color: var(--cinza); text-align: center; }
 @media (prefers-reduced-motion: reduce) { .zap { animation: none; } }

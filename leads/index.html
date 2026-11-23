@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contatos do QR code · BV Pesados · 75 LAB</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#F3F4EE">
+<link rel="icon" href="../assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #0E1110; --ink2: #54594E; --lime: #C0EE4E; --papel: #F3F4EE; --linha: #E2E3DC; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--papel); color: var(--ink); font-family: 'Lexend', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .capa { max-width: 1100px; margin: 0 auto; padding: 26px 20px 60px; }
+  .topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 30px; }
+  .marca { line-height: 0; } .marca img { height: 24px; width: auto; }
+  .quem { font-size: 12px; color: var(--ink2); display: flex; align-items: center; gap: 12px; }
+  button { font: inherit; cursor: pointer; }
+  .ghost { background: none; border: 1px solid var(--linha); border-radius: 30px; padding: 8px 16px; font-size: 12px; color: var(--ink2); }
+  .eyebrow { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink2); margin-bottom: 10px; }
+  h1 { font-weight: 200; font-size: clamp(30px, 6vw, 48px); line-height: 1; letter-spacing: -.02em; text-transform: uppercase; }
+  h1 b { font-weight: 600; }
+  .sub { margin-top: 14px; font-size: 15px; color: var(--ink2); line-height: 1.55; max-width: 620px; }
+  .cta { margin-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn { background: var(--ink); color: #fff; border: 0; border-radius: 40px; padding: 15px 26px; font-size: 15px; font-weight: 500; }
+  .btn.lime { background: var(--lime); color: var(--ink); }
+  .erro { margin-top: 16px; font-size: 14px; color: #B3261E; }
+  .barra { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 28px 0 18px; }
+  select { font: inherit; font-size: 14px; padding: 10px 14px; border: 1px solid var(--linha); border-radius: 30px; background: #fff; color: var(--ink); }
+  .conta { font-size: 13px; color: var(--ink2); }
+  .bloco { background: #fff; border-radius: 20px; padding: 10px 24px 18px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink2); font-weight: 500; padding: 14px 10px 10px 0; white-space: nowrap; }
+  td { padding: 12px 10px 12px 0; border-top: 1px solid var(--linha); vertical-align: top; }
+  td a { color: var(--ink); }
+  .pe { margin-top: 26px; font-size: 12px; color: var(--ink2); line-height: 1.7; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main class="capa">
+  <div class="topo">
+    <a class="marca" href="https://75lab.com.br" target="_blank" rel="noopener"><img src="../assets/img/logo-75lab-preto.png" alt="75 LAB" width="104" height="30"></a>
+    <div class="quem"><span id="email"></span><button class="ghost" id="sair" hidden>Sair</button></div>
+  </div>
+
+  <section id="tela-login">
+    <div class="eyebrow">Acesso da equipe</div>
+    <h1>Contatos do <b>QR code</b></h1>
+    <p class="sub">Aqui ficam o nome e o WhatsApp de quem preencheu a tela antes de falar com o vendedor.
+      Como tem dado de pessoa, só abre com conta <b>@75lab.com.br</b>. O painel de números, sem nada
+      pessoal, é o <a href="../painel/">painel da campanha</a>.</p>
+    <div class="cta"><button class="btn" id="entrar">Entrar com o Google</button></div>
+    <p class="erro" id="login-erro" hidden></p>
+  </section>
+
+  <section id="tela-dados" hidden>
+    <div class="eyebrow">Empréstimo com Garantia de Veículo · Pesados · BV</div>
+    <h1>Contatos do <b>QR code</b></h1>
+    <div class="barra">
+      <select id="filtro"><option value="">Todos os vendedores</option></select>
+      <span class="conta" id="conta"></span>
+      <button class="ghost" id="excel">Baixar para Excel</button>
+    </div>
+    <div class="bloco">
+      <table>
+        <thead><tr><th>Quando</th><th>Vendedor</th><th>Nome</th><th>WhatsApp</th><th>Aparelho</th></tr></thead>
+        <tbody id="corpo"></tbody>
+      </table>
+    </div>
+    <p class="pe">O contato também chega na conversa do vendedor, com o nome já escrito na primeira
+      mensagem. Esta lista serve para a NEOBAND e o BV acompanharem a campanha inteira.</p>
+  </section>
+</main>
+
+<script type="module">
+import { firebaseConfig, FIREBASE_SDK } from '../assets/firebase-config.js?v=1';
+const [{ initializeApp }, A, F] = await Promise.all([
+  import(`${FIREBASE_SDK}/firebase-app.js`),
+  import(`${FIREBASE_SDK}/firebase-auth.js`),
+  import(`${FIREBASE_SDK}/firebase-firestore-lite.js`),
+]);
+const app = initializeApp(firebaseConfig);
+const auth = A.getAuth(app);
+const db = F.getFirestore(app);
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const tel = (d) => (d?.length === 11 ? `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
+  : d?.length === 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}` : d || '');
+const quando = (iso) => { try { return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }); } catch { return iso; } };
+
+const dados = await fetch('../vendedores.json').then((r) => r.json());
+const nomeDe = Object.fromEntries(dados.vendedores.map((v) => [v.codigo, v.nome]));
+let leads = [];
+
+$('entrar').addEventListener('click', async () => {
+  const p = new A.GoogleAuthProvider();
+  p.setCustomParameters({ hd: '75lab.com.br', prompt: 'select_account' });
+  $('login-erro').hidden = true;
+  try { await A.signInWithPopup(auth, p); }
+  catch (e) {
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') return A.signInWithRedirect(auth, p);
+    if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+      $('login-erro').textContent = e.code === 'auth/unauthorized-domain'
+        ? 'Este endereço ainda não está autorizado no Firebase (Authentication → Configurações → Domínios autorizados).'
+        : `Não foi possível entrar (${e.code || e.message}).`;
+      $('login-erro').hidden = false;
+    }
+  }
+});
+$('sair').addEventListener('click', () => A.signOut(auth));
+
+function desenhar() {
+  const f = $('filtro').value;
+  const lista = f ? leads.filter((l) => l.codigo === f) : leads;
+  $('conta').textContent = `${lista.length} contato${lista.length === 1 ? '' : 's'}`;
+  $('corpo').innerHTML = lista.map((l) => `<tr>
+    <td>${esc(quando(l.criadoEm))}</td>
+    <td>${esc(nomeDe[l.codigo] || l.codigo)}</td>
+    <td>${esc(l.nome)}</td>
+    <td><a href="https://wa.me/55${esc(l.telefone)}" target="_blank" rel="noopener">${esc(tel(l.telefone))}</a></td>
+    <td>${esc(l.so || '')}</td></tr>`).join('') || '<tr><td colspan="5">Nenhum contato ainda.</td></tr>';
+}
+
+$('filtro').addEventListener('change', desenhar);
+$('excel').addEventListener('click', () => {
+  const f = $('filtro').value;
+  const lista = f ? leads.filter((l) => l.codigo === f) : leads;
+  const linhas = [['quando', 'vendedor', 'nome', 'whatsapp', 'aparelho'],
+    ...lista.map((l) => [quando(l.criadoEm), nomeDe[l.codigo] || l.codigo, l.nome, tel(l.telefone), l.so || ''])];
+  const csv = '﻿' + linhas.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `contatos-bv-pesados-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+});
+
+A.onAuthStateChanged(auth, async (user) => {
+  const ok = user && user.email && user.email.toLowerCase().endsWith('@75lab.com.br');
+  $('tela-login').hidden = !!ok;
+  $('tela-dados').hidden = !ok;
+  $('sair').hidden = !user;
+  $('email').textContent = user ? user.email : '';
+  if (!ok) {
+    if (user) { $('login-erro').textContent = 'Esta conta não é @75lab.com.br.'; $('login-erro').hidden = false; }
+    return;
+  }
+  const snap = await F.getDocs(F.query(F.collection(db, 'qrv_leads'), F.limit(5000)));
+  leads = snap.docs.map((d) => d.data()).sort((a, b) => String(b.criadoEm).localeCompare(String(a.criadoEm)));
+  $('filtro').innerHTML = '<option value="">Todos os vendedores</option>' +
+    dados.vendedores.map((v) => `<option value="${v.codigo}">${esc(v.nome)}</option>`).join('');
+  desenhar();
+});
+</script>
+</body>
+</html>

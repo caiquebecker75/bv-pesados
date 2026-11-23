@@ -1,0 +1,150 @@
+// A página de cada vendedor: tela curta de contato e, logo depois, a conversa no WhatsApp dele.
+// Quem escaneia deixa nome e WhatsApp; o lead vai para o Firestore (só a equipe 75 LAB lê) e a
+// mensagem já chega no vendedor assinada. Quem já preencheu nas últimas 12 h vai direto.
+export const API = 'https://firestore.googleapis.com/v1/projects/instalacoes-75lab/databases/(default)/documents';
+export const KEY = 'AIzaSyCb4C2BUehqzHnhEZT8FRF845czRvHupOk';
+
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const primeiro = (nome) => nome.trim().split(/\s+/)[0];
+const fone = (f) => `(${f.slice(0, 2)}) ${f.slice(2, 7)}-${f.slice(7)}`;
+
+export function pagina(v, D) {
+  const nomeCurto = primeiro(v.nome);
+  return `<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Falar com ${esc(nomeCurto)} · Empréstimo com Garantia de Veículo</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0E1110">
+<link rel="icon" href="../assets/favicon.svg">
+<link rel="stylesheet" href="../assets/ir.css?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<main class="ir">
+  <img class="marca" src="../assets/img/logo-75lab-lime.png" alt="75 LAB" width="104" height="30">
+
+  <section id="tela-form">
+    <h1>Empréstimo com Garantia de<br><b>Veículo Pesado</b></h1>
+    <p class="sub">Deixe seu contato e fale agora com <b>${esc(v.nome)}</b> no WhatsApp.</p>
+    <form id="form" novalidate>
+      <label class="campo">
+        <span>Seu nome</span>
+        <input name="nome" autocomplete="name" enterkeyhint="next" required minlength="2" maxlength="80" placeholder="Nome e sobrenome">
+      </label>
+      <label class="campo">
+        <span>Seu WhatsApp</span>
+        <input name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" enterkeyhint="go" required placeholder="(00) 00000-0000">
+      </label>
+      <p class="erro" id="erro" hidden></p>
+      <button class="btn" type="submit">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.17 8.17 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23 2.2 0 4.27.86 5.83 2.41a8.19 8.19 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.43.13-.15.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.23.25-.86.85-.86 2.07 0 1.21.89 2.39 1.01 2.55.12.17 1.74 2.66 4.22 3.73.59.25 1.05.4 1.41.52.59.19 1.13.16 1.56.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.11-.23-.17-.48-.29z"/></svg>
+        Falar no WhatsApp
+      </button>
+      <p class="aviso">Ao continuar, você autoriza <b>${esc(nomeCurto)}</b> e o <b>BV</b> a entrarem em
+        contato sobre o Empréstimo com Garantia de Veículo. Seus dados não são usados para mais nada.</p>
+    </form>
+  </section>
+
+  <section id="tela-indo" hidden>
+    <div class="zap" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.17 8.17 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23 2.2 0 4.27.86 5.83 2.41a8.19 8.19 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23z"/></svg>
+    </div>
+    <h1>Abrindo a conversa com<br><b>${esc(v.nome)}</b></h1>
+    <a class="btn" id="ir" href="#" rel="noopener">Se não abrir, toque aqui</a>
+    <p class="fone">${esc(fone(v.fone))}</p>
+  </section>
+</main>
+
+<script>
+(function () {
+  var CODIGO = '${v.codigo}';
+  var FONE = '55${v.fone}';
+  var NOME_VENDEDOR = ${JSON.stringify(nomeCurto)};
+  var MODELO = ${JSON.stringify(D.mensagem)};
+  var API = '${API}';
+  var KEY = '${KEY}';
+  var GUARDA = 'lead75:' + CODIGO;
+
+  var ua = navigator.userAgent;
+  var so = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'iOS'
+         : /Android/i.test(ua) ? 'Android' : 'outro';
+  var dia = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
+  var $ = function (id) { return document.getElementById(id); };
+  var digitos = function (s) { return String(s || '').replace(/\\D/g, ''); };
+
+  // keepalive: o registro sai mesmo com a página indo embora para o WhatsApp
+  function gravar(colecao, campos) {
+    try {
+      fetch(API + '/' + colecao + '?key=' + KEY, {
+        method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: campos }),
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  var txt = function (v) { return { stringValue: String(v) }; };
+  function evento(tipo) {
+    gravar('qrv_eventos', { codigo: txt(CODIGO), tipo: txt(tipo), so: txt(so), dia: txt(dia) });
+  }
+
+  function linkWhats(nome) {
+    var msg = MODELO.replace('{primeiro}', NOME_VENDEDOR).replace('{nome}', nome || '');
+    return 'https://wa.me/' + FONE + '?text=' + encodeURIComponent(msg);
+  }
+
+  function irParaWhats(nome) {
+    var url = linkWhats(nome);
+    $('tela-form').hidden = true;
+    $('tela-indo').hidden = false;
+    $('ir').setAttribute('href', url);
+    evento('whatsapp');
+    setTimeout(function () { location.replace(url); }, 500);
+  }
+
+  // máscara simples do telefone, enquanto digita
+  var campoFone = document.querySelector('input[name="telefone"]');
+  campoFone.addEventListener('input', function () {
+    var d = digitos(this.value).slice(0, 11);
+    this.value = d.length > 7 ? '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7)
+      : d.length > 2 ? '(' + d.slice(0, 2) + ') ' + d.slice(2)
+      : d.length ? '(' + d : '';
+  });
+
+  document.getElementById('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var nome = this.nome.value.trim().replace(/\\s+/g, ' ');
+    var tel = digitos(this.telefone.value);
+    var erro = $('erro');
+    if (nome.length < 2 || nome.indexOf(' ') < 0) {
+      erro.textContent = 'Escreva seu nome e sobrenome.'; erro.hidden = false; this.nome.focus(); return;
+    }
+    if (tel.length < 10 || tel.length > 11) {
+      erro.textContent = 'Confira o WhatsApp: DDD e número.'; erro.hidden = false; campoFone.focus(); return;
+    }
+    erro.hidden = true;
+    gravar('qrv_leads', {
+      codigo: txt(CODIGO), nome: txt(nome), telefone: txt(tel), so: txt(so), dia: txt(dia),
+      consentimento: { booleanValue: true }, criadoEm: txt(new Date().toISOString()),
+    });
+    evento('lead');
+    try { localStorage.setItem(GUARDA, JSON.stringify({ nome: nome, quando: Date.now() })); } catch (err) {}
+    irParaWhats(nome);
+  });
+
+  evento('leitura');
+
+  // quem já deixou o contato nas últimas 12 h não preenche de novo
+  try {
+    var antes = JSON.parse(localStorage.getItem(GUARDA) || 'null');
+    if (antes && Date.now() - antes.quando < 12 * 3600e3) irParaWhats(antes.nome);
+  } catch (err) {}
+})();
+</script>
+</body>
+</html>
+`;
+}

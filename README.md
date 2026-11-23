@@ -29,19 +29,23 @@ nem sobre foto: é o que faz a câmera reconhecer de longe.
 ## Como funciona
 
 1. O consumidor aponta a câmera para o QR do banner.
-2. Abre `/<codigo>/`, que registra a **leitura**, mostra por um instante o nome do vendedor e vai para o WhatsApp.
-3. Ao sair para o WhatsApp registra a **ida para a conversa**. A mensagem já vai escrita:
-   _"Olá, {primeiro}! Vi o banner do Empréstimo com Garantia de Veículo do BV e quero saber mais."_
-4. Se o aparelho não abrir sozinho, fica o botão "Se não abrir, toque aqui".
+2. Abre `/<codigo>/`, que registra a **leitura** e mostra a tela de contato: nome e WhatsApp, só isso.
+3. Ao enviar, o contato vai para o Firestore (**lead**) e a conversa abre com a mensagem já escrita:
+   _"Olá, {primeiro}! Aqui é o {nome}. Vi o banner do Empréstimo com Garantia de Veículo do BV e quero saber mais."_
+   Assim o vendedor sabe quem é antes de responder.
+4. A saída para o WhatsApp também é carimbada (**whatsapp**), e fica o botão "Se não abrir, toque aqui".
+5. Quem já preencheu nas últimas 12 h não preenche de novo: vai direto para a conversa.
 
-Nada de quem escaneou é guardado: sem nome, sem telefone, sem localização. Só o código do vendedor,
-se foi leitura ou ida para o WhatsApp, o sistema do aparelho e a data.
+## Painel e contatos, em lugares separados
 
-## Painel
+- **Painel de números** (`painel/`, link aberto): leituras, quantos deixaram o contato, quantos foram
+  para o WhatsApp, a proporção e os últimos 14 dias. Um link por vendedor (`?v=v07`) e um da campanha
+  inteira, com ranking. Não mostra nada de pessoa.
+- **Contatos** (`leads/`, login Google **@75lab.com.br**): o nome e o WhatsApp de quem preencheu, com
+  filtro por vendedor e exportação para Excel. É daqui que sai a base para a NEOBAND e o BV.
 
-Um link por vendedor (`?v=v07`), para ele acompanhar só o que é dele: leituras do QR, quantos
-seguiram para a conversa, a proporção entre as duas coisas e os últimos 14 dias. Sem o parâmetro,
-o painel mostra a campanha inteira e o ranking por vendedor, que é a visão da NEOBAND e da 75 LAB.
+Nome e telefone de consumidor **não entram em link aberto**. O vendedor recebe o contato na própria
+conversa do WhatsApp, com o nome na primeira mensagem; o painel dele mostra a contagem.
 
 ## Refazer ou mexer na lista
 
@@ -58,8 +62,12 @@ Por isso o mesmo banner continua valendo quando um vendedor troca de celular ou 
 
 ## Onde ficam os números
 
-Firestore do projeto `instalacoes-75lab`, coleção `qrv_eventos`: um documento por evento, com
-`codigo`, `tipo` (`leitura` ou `whatsapp`), `so` e `dia`. As regras estão no repositório
+Firestore do projeto `instalacoes-75lab`:
+
+- `qrv_eventos`: um documento por evento, com `codigo`, `tipo` (`leitura`, `lead` ou `whatsapp`),
+  `so` e `dia`. Sem nada de pessoa.
+- `qrv_leads`: o contato de quem preencheu (`codigo`, `nome`, `telefone`, `consentimento`, `so`,
+  `dia`, `criadoEm`). Porta de mão única: cria sem login, lê só a equipe 75 LAB. As regras estão no repositório
 [`caiquebecker75/produtos`](https://github.com/caiquebecker75/produtos) (`firestore.rules`): qualquer
 um cria (quem escaneia não tem login) e qualquer um com o link do painel soma; apagar é só da equipe
 75 LAB. Contamos documentos em vez de manter um contador porque `batchWrite`, que é o que faria o

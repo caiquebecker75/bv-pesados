@@ -1,7 +1,7 @@
 {
   "campanha": "Empréstimo com Garantia de Veículo · Pesados · BV",
   "cliente": "NEOBAND",
-  "mensagem": "Olá, {primeiro}! Vi o banner do Empréstimo com Garantia de Veículo do BV e quero saber mais.",
+  "mensagem": "Olá, {primeiro}! Aqui é o {nome}. Vi o banner do Empréstimo com Garantia de Veículo do BV e quero saber mais.",
   "vendedores": [
     { "codigo": "v01", "nome": "Bruno Cezar Samico Bacalha", "fone": "41999723527" },
     { "codigo": "v02", "nome": "Cleiton Oliveira", "fone": "46999112655" },
